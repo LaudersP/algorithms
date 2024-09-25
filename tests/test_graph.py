@@ -3,8 +3,8 @@ from lib.vector import Vector
 from lib.matrix import Matrix
 from lib.graph_pl import Graph
 
-class TestGraph(unittest.TestCase):
-    def test_valid_adj_list_init(self):
+class TestGraphInit(unittest.TestCase):
+    def test_valid_adj_list(self):
         # Test initializing the graph via a valid adjacency list
         adj_list = {
             1: Vector(2, 3, 4),
@@ -31,7 +31,7 @@ class TestGraph(unittest.TestCase):
         # Test the size
         self.assertEqual(graph.order * (graph.order - 1) / 2, graph.size)
         
-    def test_invalid_adj_list_init(self):
+    def test_invalid_adj_list(self):
         # Test initializing the graph via a invalid adjacency list
         adj_list = {
             1: [2, 3, 4],
@@ -42,7 +42,7 @@ class TestGraph(unittest.TestCase):
         
         self.assertRaises(Exception, Graph(adj_list))
     
-    def test_valid_adj_matrix_init(self):
+    def test_valid_adj_matrix(self):
         # Test initializing the graph via a valid adjacency matrix
         adj_matrix = Matrix(
             Vector(0, 1, 1, 1),
@@ -69,7 +69,7 @@ class TestGraph(unittest.TestCase):
         # Test the size
         self.assertEqual(graph.order * (graph.order - 1) / 2, graph.size)
         
-    def test_invalid_adj_matrix_init(self):
+    def test_invalid_adj_matrix(self):
         # Test initializing the graph via a invalid adjacency list
         adj_matrix = [
             [0,1,1,1],
