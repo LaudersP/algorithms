@@ -47,3 +47,9 @@ class Edge:
         :param vertex: The vertex object
         """
         return self._directed
+    
+    def __repr__(self) -> str:
+        if self.weight is None:
+            return f"Edge({self.start_vertex.id}->{self.end_vertex.id})"
+        else:
+            return f"Edge({self.start_vertex.id}->{self.end_vertex.id}) [{self.weight}]"
