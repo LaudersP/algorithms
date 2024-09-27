@@ -29,3 +29,10 @@ class Vertex:
         :param value: The weight of the vertex
         """
         self._weight = value
+        
+    def __repr__(self) -> str:
+        """String representation of the vertex"""
+        if self.weight is None:
+            return f"Vertex({self.id})"
+        else:
+            return f"Vertex({self.id}) [{self.weight}]"
