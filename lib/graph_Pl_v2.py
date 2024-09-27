@@ -30,7 +30,7 @@ class GraphV2(object):
             self._adj_list = graph_input
             
             # Convert to adjacency matrix
-            self._adj_list_to_matrix()
+            self.__adj_list_to_matrix()
 
         # Check if the input is a adjacency matrix      
         elif isinstance(graph_input, list):
@@ -48,6 +48,10 @@ class GraphV2(object):
                     
             # Set the adjacency matrix
             self._adj_matrix = graph_input
+
+        # No graph was supplied
+        self._adj_list = {}
+        self.adj_matrix = []
                     
     @property
     def adj_list(self) -> dict:
@@ -77,8 +81,6 @@ class GraphV2(object):
         # Check if there is a matrix
         elif self.adj_matrix:
             return len(self.adj_matrix)
-        else:
-            return 0
         
     @property
     def size(self) -> int:
@@ -111,7 +113,7 @@ class GraphV2(object):
         # Return the size value
         return len(visited)
     
-    def _adj_list_to_matrix(self) -> None:
+    def __adj_list_to_matrix(self) -> None:
         """
         Convert the adjacency matrix to an adjacency list
         """
@@ -119,7 +121,7 @@ class GraphV2(object):
         if not self.adj_list:
             raise Exception("No adjacency list to convert from!")
         
-        # Initialize the matrix
+        # Initialize a fresh matrix
         self._adj_matrix = []
         
         # Initialize an empty matrix
@@ -144,12 +146,13 @@ class GraphV2(object):
                         # Check if end is vertex and start is value
                         elif edge.end_vertex == vertex and edge.start_vertex == value:
                             self._adj_matrix[row][column] = edge
+                            
                     # Start end order does matter
                     else:
                         if edge.end_vertex == value:
                             self._adj_matrix[row][column] = edge
                 
-    def _adj_matrix_to_list(self) -> None:
+    def __adj_matrix_to_list(self) -> None:
         """
         Convert the adjacency list to an adjacency matrix
         """
@@ -162,10 +165,10 @@ class GraphV2(object):
         :return: The weight of the vertex
         """
         # Check that the vertex is valid
-        if isinstance(vertex, Vertex):
-            return vertex.weight
-        else:
+        if not isinstance(vertex, Vertex):
             raise Exception("`vertex` must be of type 'Vertex'!")
+        
+        return vertex.weight
     
     def set_vertex_weight(self, vertex, weight):
         """
@@ -174,10 +177,10 @@ class GraphV2(object):
         :param weight: The desired weight
         """
         # Check that the vertex is valid
-        if isinstance(vertex, Vertex):
-            vertex.weight = weight
-        else:
+        if not isinstance(vertex, Vertex):
             raise Exception("`vertex` must be of type 'Vertex'!")
+        
+        vertex.weight = weight
     
     def get_edge_weight(self, edge):
         """
@@ -186,10 +189,10 @@ class GraphV2(object):
         :return: The weight of the edge
         """
         # Check that the edge is valid
-        if isinstance(edge, Edge):
-            return Edge.weight
-        else:
+        if not isinstance(edge, Edge):
             raise Exception("`edge` must be of type 'Edge'!")
+        
+        return Edge.weight
     
     def set_edge_weight(self, edge, weight):
         """
@@ -198,40 +201,85 @@ class GraphV2(object):
         :param weight: The desired weight
         """
         # Check that the edge is valid
-        if isinstance(edge, Vertex):
-            edge.weight = weight
-        else:
+        if not isinstance(edge, Vertex):
             raise Exception("`edge` must be of type 'Edge'!")
+        
+        edge.weight = weight
     
-    def add_vertex(self):
+    def add_vertex(self, vertex):
         """
         Adds a new vertex to the graph
-        :param *: The new vertex
+        :param vertex: An instance of the vertex class
         """
-        pass
+        # Check that the vertex is valid
+        if not isinstance(vertex, Vertex):
+            raise Exception("`vertex` must be of type 'Vertex'!")
+        
+        # Initialize adj_list entry
+        self._adj_list[vertex] = []
+
+        # Update matrix
+        self.__adj_list_to_matrix()
     
-    def del_vertex(self):
+    def del_vertex(self, vertex):
         """
         Deletes a vertex from the graph and all connecting edges
-        :param *: The desired vertex
+        :param vertex: The desired vertex
         """
-        pass
+        # Check that the vertex is valid
+        if not isinstance(vertex, Vertex):
+            raise Exception("`vertex` must be of type 'Vertex'!")
+
+        # Go to the adj_list and get its edges
+        edges = self.adj_list[vertex]
+
+        # Iterate and delete all edges
+        for edge in edges:
+            del edge
+
+        # Delete vertex from adj_list
+        del vertex
+
+        # Update matrix
+        self.__adj_list_to_matrix()
     
-    def add_edge(self):
+    def add_edge(self, edge):
         """
         Adds a new edge to the graph
-        :param start: Starting vertex
-        :param end: Ending vertex
+        :param edge: An instance of the edge class
         """
-        pass
-    
-    def del_edge(self):
+        # Check that the edge is valid
+        if not isinstance(edge, Edge):
+            raise Exception("`edge` must be of type 'Edge'!")
+        
+        # Check if the edge is directed
+        if edge.directed:
+            # Insert into the adj_list for the first node
+            self._adj_list[edge.start_vertex] += edge
+        else:
+            # Insert into the adj_list for both nodes
+            self._adj_list[edge.start_vertex] += edge
+            self._adj_list[edge.end_vertex] += edge
+        
+        # Update the matrix
+        self.__adj_list_to_matrix()
+
+    def del_edge(self, edge):
         """
         Deletes a vertex from the graph
-        :param start: Starting vertex
-        :param end: Ending vertex
+        :param edge: Starting vertex
         """
-        pass
+        # Check that the edge is valid
+        if not isinstance(edge, Edge):
+            raise Exception("`edge` must be of type 'Edge'!")
+        
+        # Check if the edge is directed
+        if edge.directed:
+            # Remove the edge from the starting vertex edge list
+            pass
+        else:
+            # Remove the edge from both vertex edge lists
+            pass
     
     def is_directed(self) -> bool:
         """
