@@ -48,10 +48,14 @@ class GraphV2(object):
                     
             # Set the adjacency matrix
             self._adj_matrix = graph_input
+            
+            # Convert to adjacency list
+            self.__adj_matrix_to_list()
 
         # No graph was supplied
-        self._adj_list = {}
-        self.adj_matrix = []
+        else:
+            self._adj_list = {}
+            self._adj_matrix = []
                     
     @property
     def adj_list(self) -> dict:
@@ -97,7 +101,7 @@ class GraphV2(object):
                 # Iterate through the edges
                 for edge in edges:
                     # Check if the edge has been counted
-                    if visited.count(edge) == 0:
+                    if edge not in visited:
                         visited.append(edge)
             
         # Check if there is a matrix
@@ -107,7 +111,7 @@ class GraphV2(object):
                 # Iterate through the column values
                 for value in row:
                     # Check for an edge and see if it has been counted for
-                    if value is not None and visited.count(value) == 0:
+                    if value is not None and value not in visited:
                         visited.append(value)
                         
         # Return the size value
@@ -143,6 +147,7 @@ class GraphV2(object):
                         # Check if start is vertex and end is value
                         if edge.start_vertex == vertex and edge.end_vertex == value:
                             self._adj_matrix[row][column] = edge
+                            
                         # Check if end is vertex and start is value
                         elif edge.end_vertex == vertex and edge.start_vertex == value:
                             self._adj_matrix[row][column] = edge
@@ -156,7 +161,40 @@ class GraphV2(object):
         """
         Convert the adjacency list to an adjacency matrix
         """
-        pass
+        # Check for an adjacency matrix
+        if not self.adj_matrix:
+            raise Exception("No adjacency matrix to convert from!")
+        
+        # Initialize a fresh adj_list
+        self._adj_list = {}
+        
+        # Iterate through the matrix and get all vertices
+        for vertex in self.adj_matrix:
+            for edge in vertex:
+                # Check if the entry is not None
+                if edge is not None:
+                    # Add the vertices
+                    if edge.start_vertex not in self.adj_list:
+                        self._adj_list[edge.start_vertex] = []
+                        
+                    if edge.end_vertex not in self.adj_list:
+                        self._adj_list[edge.end_vertex] = []
+                        
+        # Add in the edges
+        for vertex in self.adj_matrix:
+            for edge in vertex:
+                if edge is not None:
+                    # Check if the edge is directed
+                    if edge.directed and edge not in self.adj_list[edge.start_vertex]:
+                        # Add to only the start vertex
+                        self._adj_list[edge.start_vertex].append(edge)
+                    else:
+                        # Add to both vertex
+                        if edge not in self._adj_list[edge.start_vertex]:
+                            self._adj_list[edge.start_vertex].append(edge)
+                            
+                        if edge not in self._adj_list[edge.end_vertex]:
+                            self._adj_list[edge.end_vertex].append(edge)
     
     def get_vertex_weight(self, vertex):
         """
@@ -192,7 +230,7 @@ class GraphV2(object):
         if not isinstance(edge, Edge):
             raise Exception("`edge` must be of type 'Edge'!")
         
-        return Edge.weight
+        return edge.weight
     
     def set_edge_weight(self, edge, weight):
         """
@@ -201,7 +239,7 @@ class GraphV2(object):
         :param weight: The desired weight
         """
         # Check that the edge is valid
-        if not isinstance(edge, Vertex):
+        if not isinstance(edge, Edge):
             raise Exception("`edge` must be of type 'Edge'!")
         
         edge.weight = weight
@@ -217,6 +255,23 @@ class GraphV2(object):
         
         # Initialize adj_list entry
         self._adj_list[vertex] = []
+        
+        # Get the adj_list keys
+        vertices = list(self._adj_list.keys())
+        
+        # Get the keys ids in order
+        vertices_id = sorted([v.id for v in vertices])
+            
+        # Create a new adj_list
+        new_adj_list = {}
+        for vertex_id in vertices_id:
+            for vertex in vertices:
+                if vertex.id == vertex_id:
+                    new_adj_list[vertex] = self._adj_list[vertex]
+                    break
+                
+        # Update the adj_list
+        self._adj_list = new_adj_list
 
         # Update matrix
         self.__adj_list_to_matrix()
@@ -229,20 +284,23 @@ class GraphV2(object):
         # Check that the vertex is valid
         if not isinstance(vertex, Vertex):
             raise Exception("`vertex` must be of type 'Vertex'!")
-
-        # Go to the adj_list and get its edges
-        edges = self.adj_list[vertex]
-
-        # Iterate and delete all edges
-        for edge in edges:
-            del edge
+        
+        # Iterate through the dict
+        for vertex_edges in self.adj_list:
+            for edge in self.adj_list[vertex_edges]:
+                # Check if the start or end vertex of a edge is linked with `vertex`
+                if edge.start_vertex is vertex:
+                    self.adj_list[vertex_edges].remove(edge)
+                    
+                if edge.end_vertex is vertex:
+                    self.adj_list[vertex_edges].remove(edge)
 
         # Delete vertex from adj_list
-        del vertex
+        self._adj_list.pop(vertex)
 
         # Update matrix
         self.__adj_list_to_matrix()
-    
+        
     def add_edge(self, edge):
         """
         Adds a new edge to the graph
@@ -253,13 +311,16 @@ class GraphV2(object):
             raise Exception("`edge` must be of type 'Edge'!")
         
         # Check if the edge is directed
-        if edge.directed:
+        if edge.directed and edge not in self.adj_list[edge.start_vertex]:
             # Insert into the adj_list for the first node
-            self._adj_list[edge.start_vertex] += edge
-        else:
+            self._adj_list[edge.start_vertex].append(edge)
+        elif not edge.directed:
             # Insert into the adj_list for both nodes
-            self._adj_list[edge.start_vertex] += edge
-            self._adj_list[edge.end_vertex] += edge
+            if edge not in self.adj_list[edge.start_vertex]:
+                self._adj_list[edge.start_vertex].append(edge) 
+                
+            if edge not in self.adj_list[edge.end_vertex]:
+                self._adj_list[edge.end_vertex].append(edge)
         
         # Update the matrix
         self.__adj_list_to_matrix()
@@ -275,11 +336,13 @@ class GraphV2(object):
         
         # Check if the edge is directed
         if edge.directed:
-            # Remove the edge from the starting vertex edge list
-            pass
+            self._adj_list[edge.start_vertex].remove(edge)
         else:
-            # Remove the edge from both vertex edge lists
-            pass
+            self._adj_list[edge.start_vertex].remove(edge)
+            self._adj_list[edge.end_vertex].remove(edge)
+            
+        # Update the matrix
+        self.__adj_list_to_matrix()
     
     def is_directed(self) -> bool:
         """
