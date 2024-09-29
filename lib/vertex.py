@@ -36,3 +36,6 @@ class Vertex:
             return f"Vertex({self.id})"
         else:
             return f"Vertex({self.id}) [{self.weight}]"
+
+    def __lt__(self, other):
+        return self.id < other.id
