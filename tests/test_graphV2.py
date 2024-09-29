@@ -47,9 +47,9 @@ class TestGraphInit(unittest.TestCase):
         C = Vertex('C')
         
         # Edges
-        AB = Edge(A, B, directed=True)
-        BC = Edge(B, C, directed=True)
-        CA = Edge(C, A, directed=True)
+        AB = Edge(A, B)
+        BC = Edge(B, C)
+        CA = Edge(C, A)
         
         # Create the adjacency list
         adj_list = {
@@ -119,9 +119,9 @@ class TestGraphInit(unittest.TestCase):
         C = Vertex('C')
         
         # Edges
-        AB = Edge(A, B, directed=True)
-        BC = Edge(B, C, directed=True)
-        CA = Edge(C, A, directed=True)
+        AB = Edge(A, B)
+        BC = Edge(B, C)
+        CA = Edge(C, A)
         
         # Create the adjacency list
         adj_matrix = [
@@ -591,7 +591,7 @@ class TestGraphEdgeMethods(unittest.TestCase):
         Z = Vertex('Z')
         
         # Edges
-        AZ = Edge(A, Z, directed=True)
+        AZ = Edge(A, Z)
         
         # Create the adjacency list
         adj_list = {
@@ -655,8 +655,8 @@ class TestGraphEdgeMethods(unittest.TestCase):
         Z = Vertex('Z')
         
         # Edges
-        AZ = Edge(A, Z, directed=True)
-        ZA = Edge(Z, A, directed=True)
+        AZ = Edge(A, Z)
+        ZA = Edge(Z, A)
         
         # Create the adjacency list
         adj_list = {
@@ -702,3 +702,214 @@ class TestGraphEdgeMethods(unittest.TestCase):
         
         # Delete edge
         self.assertRaises(Exception, graph.del_edge, "AZ")
+        
+class TestGraphMethods(unittest.TestCase):
+    def test_is_directed_not_directed(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B)
+        BC = Edge(B, C)
+        AC = Edge(A, C)
+        
+        # Adjacency matrix
+        adj_matrix = [
+            [None, AB, AC],
+            [AB, None, BC],
+            [AC, BC, None]
+        ]
+        
+        # Initialize the graph
+        graph = GraphV2(adj_matrix)
+        
+        # Test for direction
+        self.assertFalse(graph.is_directed())
+    
+    def test_is_directed_directed(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B)
+        BC = Edge(B, C)
+        CA = Edge(A, C)
+        
+        # Adjacency matrix
+        adj_matrix = [
+            [None, AB, None],
+            [None, None, BC],
+            [CA, None, None]
+        ]
+        
+        # Initialize the graph
+        graph = GraphV2(adj_matrix)
+        
+        # Test for direction
+        self.assertTrue(graph.is_directed())
+        
+    def test_bfs(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+        F = Vertex('F')
+        G = Vertex('G')
+        H = Vertex('H')
+        I = Vertex('I')
+
+        # Edges
+        AB = Edge(A, B)  
+        AC = Edge(A, C)  
+        BD = Edge(B, D)  
+        CE = Edge(C, E)  
+        DF = Edge(D, F)  
+        EF = Edge(E, F)  
+        EG = Edge(E, G)  
+        FH = Edge(F, H)  
+        GI = Edge(G, I)  
+        HC = Edge(H, C)  
+        GB = Edge(G, B)  
+
+        # Adjacency list
+        adj_list = {
+            A: [AB, AC],  
+            B: [BD],      
+            C: [CE],      
+            D: [DF],      
+            E: [EF, EG],  
+            F: [FH],      
+            G: [GI, GB],  
+            H: [HC],      
+            I: []         
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Perform the BFS
+        desired_results = [A, B, C, D, E, F, G, H, I]
+        self.assertEqual(desired_results, graph.bfs(A))
+    
+    def test_bfs_directional(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+        F = Vertex('F')
+        G = Vertex('G')
+        H = Vertex('H')
+        I = Vertex('I')
+
+        # Edges
+        AB = Edge(A, B, directed=True)
+        AC = Edge(A, C, directed=True)
+        BD = Edge(B, D, directed=True)
+        CE = Edge(C, E, directed=True)
+        DF = Edge(D, F, directed=True)
+        EF = Edge(E, F, directed=True)
+        EG = Edge(E, G, directed=True)
+        FH = Edge(F, H, directed=True)
+        GI = Edge(G, I, directed=True)
+        HC = Edge(H, C, directed=True)
+        GB = Edge(G, B, directed=True)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB, AC],  
+            B: [BD],      
+            C: [CE],      
+            D: [DF],      
+            E: [EF, EG],  
+            F: [FH],      
+            G: [GI, GB],  
+            H: [HC],      
+            I: []         
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Perform the BFS
+        desired_output = [D, F, H, C, E, G, I, B]
+        self.assertEqual(desired_output, graph.bfs(D))
+    
+    def test_is_connected_not_connected(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+
+        # Edges
+        AB = Edge(A, B, directed=True)
+        CD = Edge(C, D, directed=True)
+        DE = Edge(D, E, directed=True)
+        
+        # Adjacency list
+        adj_list = {
+            A: [AB],  
+            B: [],      
+            C: [CD],      
+            D: [DE],      
+            E: []         
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Test the connectivity
+        self.assertFalse(graph.is_connected())
+    
+    def test_is_connected_connected(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+        F = Vertex('F')
+        G = Vertex('G')
+        H = Vertex('H')
+        I = Vertex('I')
+
+        # Edges
+        AB = Edge(A, B, directed=True)
+        AC = Edge(A, C, directed=True)
+        BD = Edge(B, D, directed=True)
+        CE = Edge(C, E, directed=True)
+        DF = Edge(D, F, directed=True)
+        EF = Edge(E, F, directed=True)
+        EG = Edge(E, G, directed=True)
+        FH = Edge(F, H, directed=True)
+        GI = Edge(G, I, directed=True)
+        HC = Edge(H, C, directed=True)
+        GB = Edge(G, B, directed=True)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB, AC],  
+            B: [BD],      
+            C: [CE],      
+            D: [DF],      
+            E: [EF, EG],  
+            F: [FH],      
+            G: [GI, GB],  
+            H: [HC],      
+            I: []         
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Test the connectivity
+        self.assertTrue(graph.is_connected())
