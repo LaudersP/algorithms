@@ -355,7 +355,7 @@ class GraphV2(object):
         for i in range(self.order):
             for j in range(i, self.order):
                 # Compare the symmetry
-                if self.adj_matrix[i][j] is not self.adj_matrix[j][i]:
+                if self.adj_matrix[i][j] != self.adj_matrix[j][i]:
                     return True # Directed
          
         return False # Not directed
@@ -379,9 +379,69 @@ class GraphV2(object):
         return len(traversal_order) is len(vertices)
     
     def is_unilaterally_connected(self) -> bool:
-        pass
+        """
+        checks if there is a directed path between every pair of vertices in one direction
+        :return: If the graph is unilaterally connected
+        """
+        # Get the vertices
+        vertices = list(self.adj_list.keys())
+        
+        # Check for vertices
+        if not vertices:
+            return True
+        
+        # Create the results list
+        vertices_bfs_results = {}
+        for vertex in vertices:
+            vertices_bfs_results[vertex] = self.bfs(vertex)
+            
+        # Check every pair of vertices (u, v)
+        for i in range(len(vertices)):
+            for j in range(i + 1, len(vertices)):
+                u = vertices[i]
+                v = vertices[j]
+                
+                # Check if there is a path form u -> v or v -> u
+                if v not in vertices_bfs_results[u] and u not in vertices_bfs_results[v]:
+                    return False
+                
+        return True
+    
+    def is_strongly_connected(self) -> bool:
+        """
+        Checks if there is a directed path between every pair of vertices in both directions
+        :return: If the graph is strongly connected
+        """
+        # Get the vertices
+        vertices = list(self.adj_list.keys())
+        
+        # Check for vertices
+        if not vertices:
+            return True
+        
+        # Pick a start vertex
+        start_vertex = vertices[0]
+        
+        # Perform a BFS search to see if all vertices to see are reachable
+        original_reachable = self.bfs(start_vertex)
+        if len(original_reachable) != len(vertices):
+            return False
+        
+        # Transpose the graph
+        transposed_graph = self.transpose()
+        
+        # Perform a BFS from start_vertex on the transposed graph
+        transposed_reachable = transposed_graph.bfs(start_vertex)
+        if len(transposed_reachable) != len(vertices):
+            return False
+            
+        return True
     
     def is_weakly_connected(self) -> bool:
+        """
+        Checks if the underlying graph is connected if direction is ignored
+        :return: If the graph is weakly connected
+        """
         pass
     
     def is_tree(self) -> bool:
@@ -389,7 +449,15 @@ class GraphV2(object):
         Checks if the graph is a tree
         :return: If the graph is a tree
         """
-        pass
+        # Check to see if the size is appropriate for a tree
+        if self.size != (self.order - 1):
+            return False
+        
+        # Check if the graph is connected
+        if not self.is_connected():
+            return False
+        
+        return True
     
     def components(self) -> int:
         """
@@ -454,3 +522,24 @@ class GraphV2(object):
                            
         return visited
         
+    def transpose(self):
+        """
+        Creates and returns the transpose of the graph (u -> v) reversed to (v -> u)
+        :return: A new GraphV2 object that is transpose of the current graph
+        """
+        # Initialize an empty adjacency list
+        transpose_adj_list = {}
+        for vertex in self.adj_list:
+            transpose_adj_list[vertex] = []
+            
+        # Get the edges
+        for vertex in self.adj_list:
+            for edge in self.adj_list[vertex]:
+                # Reverse the edge direction
+                reversed_edge = Edge(edge.end_vertex, edge.start_vertex, edge.weight, edge.directed)
+                
+                # Add edge to the transpose adjacency list
+                transpose_adj_list[edge.end_vertex].append(reversed_edge)
+                
+        # Return the transpose graph
+        return GraphV2(transpose_adj_list)
