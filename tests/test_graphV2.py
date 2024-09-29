@@ -119,9 +119,9 @@ class TestGraphInit(unittest.TestCase):
         C = Vertex('C')
         
         # Edges
-        AB = Edge(A, B)
-        BC = Edge(B, C)
-        CA = Edge(C, A)
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        CA = Edge(C, A, directed=True)
         
         # Create the adjacency list
         adj_matrix = [
@@ -591,11 +591,11 @@ class TestGraphEdgeMethods(unittest.TestCase):
         Z = Vertex('Z')
         
         # Edges
-        AZ = Edge(A, Z)
+        AZ = Edge(A, Z, directed=True)
         
         # Create the adjacency list
         adj_list = {
-            A: [AZ],
+            A: [],
             Z: []
         }
         
@@ -655,8 +655,8 @@ class TestGraphEdgeMethods(unittest.TestCase):
         Z = Vertex('Z')
         
         # Edges
-        AZ = Edge(A, Z)
-        ZA = Edge(Z, A)
+        AZ = Edge(A, Z, directed=True)
+        ZA = Edge(Z, A, directed=True)
         
         # Create the adjacency list
         adj_list = {
@@ -913,3 +913,221 @@ class TestGraphMethods(unittest.TestCase):
         
         # Test the connectivity
         self.assertTrue(graph.is_connected())
+        
+    def test_is_tree_disconnected_graph(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        
+        # Edges
+        AB = Edge(A, B)
+        CD = Edge(C, D)
+        
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [AB],
+            C: [CD],
+            D: [CD]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check if the graph is a tree
+        self.assertFalse(graph.is_tree())
+        
+    def test_is_tree_cycle_graph(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B)
+        BC = Edge(B, C)
+        CA = Edge(C, A)
+        
+        # Create adjacency list
+        adj_list = {
+            A: [AB, CA],
+            B: [AB, BC],
+            C: [BC, CA]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check if the graph is a tree
+        self.assertFalse(graph.is_tree())
+    
+    def test_is_tree_tree(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+        
+        # Edges
+        AB = Edge(A, B, directed=False)
+        AC = Edge(A, C, directed=False)
+        BD = Edge(B, D, directed=False)
+        BE = Edge(B, E, directed=False)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB, AC],
+            B: [AB, BD, BE],
+            C: [AC],
+            D: [BD],
+            E: [BE]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check if the graph is a tree
+        self.assertTrue(graph.is_tree())
+        
+    def test_is_unilaterally_connected_not(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+        
+        # Edges
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        CD = Edge(C, D, directed=True)
+        
+        # Adjacency list
+        adj_list = {
+            A: [AB],   
+            B: [BC],   
+            C: [CD],   
+            D: [],     
+            E: []      
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list) 
+        
+        # Check if the graph is not unilaterally connected
+        self.assertFalse(graph.is_unilaterally_connected())  
+    
+    def test_is_unilaterally_connected(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+        
+        # Edges 
+        AB = Edge(A, B, directed=True)  
+        BC = Edge(B, C, directed=True)  
+        CD = Edge(C, D, directed=True)  
+        DE = Edge(D, E, directed=True)  
+        EA = Edge(E, A, directed=True)  
+
+        # Adjacency list 
+        adj_list = {
+            A: [AB],  
+            B: [BC],  
+            C: [CD],  
+            D: [DE],  
+            E: [EA]   
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check if the graph is unilaterally connected
+        self.assertTrue(graph.is_unilaterally_connected())
+        
+    def test_transpose(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+
+        # Edges
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        AC = Edge(A, C, directed=True)
+
+        # Adjacency list 
+        adj_list = {
+            A: [AB, AC],
+            B: [BC],    
+            C: [],     
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Transpose graph
+        transposed_graph = graph.transpose()
+        
+        # Test the results
+        BA = Edge(B, A, directed=True)
+        CB = Edge(C, B, directed=True)
+        CA = Edge(C, A, directed=True)
+        transposed_adj_list = {
+            A: [],
+            B: [BA],
+            C: [CA, CB]
+        }
+        self.assertEqual(transposed_adj_list, transposed_graph.adj_list)
+        
+    def test_strongly_connected_not(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [BC],
+            C: []
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check if it is strongly connected
+        self.assertFalse(graph.is_strongly_connected())
+    
+    def test_strongly_connected(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        CA = Edge(C, A, directed=True)
+        
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [BC],
+            C: [CA]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check if it is strongly connected
+        self.assertTrue(graph.is_strongly_connected())
