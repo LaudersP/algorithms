@@ -31,11 +31,35 @@ class Vertex:
         self._weight = value
         
     def __repr__(self) -> str:
-        """String representation of the vertex"""
+        """
+        Get a string representation of the edge
+        :return: A representation as a sting
+        """
         if self.weight is None:
             return f"Vertex({self.id})"
         else:
             return f"Vertex({self.id}) [{self.weight}]"
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
+        """
+        < operator
+        :param other: The vertex to compare against
+        :return: True if this vertex's id is less than the `other` vertex's id
+        """
+        if not isinstance(other, Vertex):
+            return NotImplemented
         return self.id < other.id
+    
+    def __eq__(self, other):
+        """
+        == operator
+        :param other: The vertex to compare against
+        :return: True if this vertex is equal to the `other` vertex
+        """
+        if not isinstance(other, Vertex):
+            return NotImplemented
+        return self.id == other.id and self.weight == other.weight
+        
+    def __hash__(self):
+        """Allows Vertex to be used as a key in dictionaries and stored in sets."""
+        return hash((self.id, self.weight))
