@@ -1,5 +1,7 @@
 from lib.vertex import Vertex
 from lib.edge import Edge
+from collections import deque
+from enum import Enum
 
 class GraphV2(object):
     """This class handles creation and operations of graph related code"""
@@ -349,14 +351,32 @@ class GraphV2(object):
         Checks if the graph is directed
         :return: If the graph is directed
         """
-        pass
-    
+        # Loop through the matrix 
+        for i in range(self.order):
+            for j in range(i, self.order):
+                # Compare the symmetry
+                if self.adj_matrix[i][j] is not self.adj_matrix[j][i]:
+                    return True # Directed
+         
+        return False # Not directed
+            
     def is_connected(self) -> bool:
         """
         Checks if the graph is connected
         :return: If the graph is connected
         """
-        pass
+        # Get a list of vertices
+        vertices = list(self.adj_list.keys())
+        
+        # Check that the graph has vertices
+        if not vertices:
+            return True
+        
+        # Get the traversal order
+        traversal_order = self.bfs(vertices[0])
+        
+        # check if all vertices were visited
+        return len(traversal_order) is len(vertices)
     
     def is_unilaterally_connected(self) -> bool:
         pass
@@ -391,4 +411,46 @@ class GraphV2(object):
         :return: The length of the longest cycle
         """
         pass
+    
+    def bfs(self, start_vertex):
+        """
+        Perform a breadth-first search on the graph
+        :param start_vertex: The starting vertex
+        :returns: The traversal order of the search
+        """
+        # Check that start_vertex is valid
+        if not isinstance(start_vertex, Vertex):
+            raise Exception("`start_vertex` must be of type `Vertex`!")
+         
+        # Storing traversal order
+        visited = []
+        
+        # Create the queue
+        queue = deque([start_vertex])
+        
+        # Perform the BFS while the queue is not empty
+        while queue:
+            # Get the front vertex
+            vertex = queue.popleft()
+            
+            # Check if the vertex has been visited
+            if vertex not in visited:
+                # Add to the visited list
+                visited.append(vertex)
+                
+                # Iterate trough all the edges for the vertex 
+                for edge in self.adj_list[vertex]:
+                    # Check if the edge is directed
+                    if edge.directed and edge.end_vertex not in visited:
+                        # Add the ending vertex
+                        queue.append(edge.end_vertex)
+                    else:
+                        # Add the start vertex if not the current vertex
+                        if edge.start_vertex != vertex and edge.start_vertex not in visited:
+                            queue.append(edge.start_vertex)
+                        # Add the end vertex if not the current vertex
+                        if edge.end_vertex != vertex and edge.end_vertex not in visited:
+                            queue.append(edge.end_vertex)
+                           
+        return visited
         
