@@ -703,6 +703,111 @@ class TestGraphEdgeMethods(unittest.TestCase):
         # Delete edge
         self.assertRaises(Exception, graph.del_edge, "AZ")
         
+    def test_add_edge_disallow_multiple_edges(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+
+        # Edges
+        edge1 = Edge(A, B)
+        edge2 = Edge(A, B)  # Another edge between A and B
+
+        # Create the adjacency list
+        adj_list = {
+            A: [edge1],
+            B: [edge1]
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Attempt to add another edge between A and B without allowing multiple edges
+        with self.assertRaises(Exception) as context:
+            graph.add_edge(edge2)
+
+        # Check the exception message
+        self.assertEqual(
+            str(context.exception),
+            "Multiple edges between the same vertices are not allowed unless 'allow_multiple_edges' is True!"
+        )
+
+    def test_add_edge_allow_multiple_edges(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+
+        # Edges
+        edge1 = Edge(A, B)
+        edge2 = Edge(A, B)  # Another edge between A and B
+
+        # Create the adjacency list
+        adj_list = {
+            A: [edge1],
+            B: [edge1]
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Add another edge between A and B allowing multiple edges
+        graph.add_edge(edge2, allow_multiple_edges=True)
+
+        # Test the results
+        adj_list = {
+            A: [edge1, edge2],
+            B: [edge1, edge2]
+        }
+        self.assertEqual(adj_list, graph.adj_list)
+
+    def test_add_loop_disallow_loops(self):
+        # Vertices
+        A = Vertex('A')
+
+        # Edge (loop)
+        loop_edge = Edge(A, A)
+
+        # Create the adjacency list
+        adj_list = {
+            A: []
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Attempt to add a loop without allowing loops
+        with self.assertRaises(Exception) as context:
+            graph.add_edge(loop_edge)
+
+        # Check the exception message
+        self.assertEqual(
+            str(context.exception),
+            "Loops are not allowed unless 'allow_multiple_edges' is True!"
+        )
+
+    def test_add_loop_allow_loops(self):
+        # Vertices
+        A = Vertex('A')
+
+        # Edge (loop)
+        loop_edge = Edge(A, A)
+
+        # Create the adjacency list
+        adj_list = {
+            A: []
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Add a loop allowing loops
+        graph.add_edge(loop_edge, allow_multiple_edges=True)
+
+        # Test the results
+        adj_list = {
+            A: [loop_edge]
+        }
+        self.assertEqual(adj_list, graph.adj_list)
+        
 class TestGraphMethods(unittest.TestCase):
     def test_is_directed_not_directed(self):
         # Vertices
@@ -888,24 +993,27 @@ class TestGraphMethods(unittest.TestCase):
         BD = Edge(B, D, directed=True)
         CE = Edge(C, E, directed=True)
         DF = Edge(D, F, directed=True)
+        DA = Edge(D, A, directed=True)
         EF = Edge(E, F, directed=True)
         EG = Edge(E, G, directed=True)
+        FE = Edge(F, E, directed=True)
         FH = Edge(F, H, directed=True)
         GI = Edge(G, I, directed=True)
-        HC = Edge(H, C, directed=True)
         GB = Edge(G, B, directed=True)
+        IA = Edge(I, A, directed=True)
+        HC = Edge(H, C, directed=True)
 
         # Adjacency list
         adj_list = {
-            A: [AB, AC],  
-            B: [BD],      
-            C: [CE],      
-            D: [DF],      
-            E: [EF, EG],  
-            F: [FH],      
-            G: [GI, GB],  
-            H: [HC],      
-            I: []         
+            A: [AB, AC],
+            B: [BD],
+            C: [CE],
+            D: [DF, DA],
+            E: [EF, EG],
+            F: [FH, FE],
+            G: [GI, GB],
+            H: [HC],
+            I: [IA]     
         }
         
         # Initialize the graph
@@ -913,6 +1021,7 @@ class TestGraphMethods(unittest.TestCase):
         
         # Test the connectivity
         self.assertTrue(graph.is_connected())
+
         
     def test_is_tree_disconnected_graph(self):
         # Vertices
@@ -1131,3 +1240,292 @@ class TestGraphMethods(unittest.TestCase):
         
         # Check if it is strongly connected
         self.assertTrue(graph.is_strongly_connected())
+        
+    def test_components(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+        F = Vertex('F')
+        
+        # Edge
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        CA = Edge(C, A, directed=True)
+        DE = Edge(D, E)
+        
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [BC],
+            C: [CA],
+            D: [DE],
+            E: [DE],
+            F: []
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Get the number of components
+        self.assertEqual(3, graph.components())
+        
+    def test_is_weakly_connected_not(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+
+        # Edges
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [BC],
+            C: [],
+            D: []  
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Check if the graph is weakly connected
+        self.assertFalse(graph.is_weakly_connected())
+
+    def test_is_weakly_connected(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+
+        # Edges
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        CD = Edge(C, D, directed=True)
+        DA = Edge(D, A, directed=True)  
+
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [BC],
+            C: [CD],
+            D: [DA]
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Check if the graph is weakly connected
+        self.assertTrue(graph.is_weakly_connected())
+        
+    def test_girth_directed_multiple_cycles(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+
+        # Edges (creating multiple directed cycles)
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        CD = Edge(C, D, directed=True)
+        DA = Edge(D, A, directed=True)
+        CE = Edge(C, E, directed=True)
+        EC = Edge(E, C, directed=True)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [BC],
+            C: [CD, CE],
+            D: [DA],
+            E: [EC]
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Check the graph's girth (shortest cycle should be C -> E -> C, length 2)
+        self.assertEqual(2, graph.girth())
+
+    def test_girth_undirected_multiple_cycles(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+
+        # Edges (creating multiple undirected cycles)
+        AB = Edge(A, B)
+        BC = Edge(B, C)
+        CD = Edge(C, D)
+        DA = Edge(D, A)
+        CE = Edge(C, E)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB, DA],
+            B: [AB, BC],
+            C: [BC, CD, CE],
+            D: [CD, DA],
+            E: [CE]
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Check the graph's girth (shortest cycle should be A -> B -> C -> D -> A, length 4)
+        self.assertEqual(4, graph.girth())
+
+    def test_girth_directed_no_cycles(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+
+        # Edges (no cycles)
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        CD = Edge(C, D, directed=True)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [BC],
+            C: [CD],
+            D: []
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Check the graph's girth (no cycles, should be None)
+        self.assertIsNone(graph.girth())
+
+    def test_circumference_directed_multiple_cycles(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+
+        # Edges
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        CD = Edge(C, D, directed=True)
+        DA = Edge(D, A, directed=True)
+        CE = Edge(C, E, directed=True)
+        EC = Edge(E, C, directed=True)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [BC],
+            C: [CD, CE],
+            D: [DA],
+            E: [EC]
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Check the graph's circumference (longest cycle should be A -> B -> C -> D -> A, length 4)
+        self.assertEqual(4, graph.circumference())
+
+    def test_circumference_undirected_multiple_cycles(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+
+        # Edges
+        AB = Edge(A, B)
+        BC = Edge(B, C)
+        CD = Edge(C, D)
+        DA = Edge(D, A)
+        CE = Edge(C, E)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB, DA],
+            B: [AB, BC],
+            C: [BC, CD, CE],
+            D: [CD, DA],
+            E: [CE]
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Check the graph's circumference (longest cycle should be A -> B -> C -> D -> A, length 4)
+        self.assertEqual(6, graph.circumference())
+
+    def test_circumference_directed_no_cycles(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+
+        # Edges (no cycles)
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        CD = Edge(C, D, directed=True)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [BC],
+            C: [CD],
+            D: []
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Check the graph's circumference (no cycles, should be None)
+        self.assertIsNone(graph.circumference())
+
+    # Tests for get_cycle_length
+
+    def test_get_cycle_length(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+
+        # Edges (directed cycle A -> B -> C -> D -> A)
+        AB = Edge(A, B, directed=True)
+        BC = Edge(B, C, directed=True)
+        CD = Edge(C, D, directed=True)
+        DA = Edge(D, A, directed=True)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [BC],
+            C: [CD],
+            D: [DA]
+        }
+
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+
+        # Check the length of the cycle starting from vertex A
+        self.assertEqual(4, graph.get_cycle_length(A))
+
+        # Check the length of the cycle starting from vertex C (should also be 4)
+        self.assertEqual(4, graph.get_cycle_length(C))
