@@ -199,18 +199,41 @@ class GraphV2(object):
                             self._adj_list[edge.end_vertex].append(edge)
                             
     def adj_matrix_to_2D_numpy_array(self) -> np.ndarray:
-        """Convert the adjacency matrix to a 2D NumPy array
-        :return: A 2D NumPy array of the graphs adjacency matrix
+        """Convert the adjacency matrix to a 2D NumPy array with 1s and 0s.
+        :return: A 2D NumPy array of the graph's adjacency matrix with binary values.
         """
-        # Check if there is a adjacency matrix to convert
+        # Check if there is an adjacency matrix to convert
         if not self.adj_matrix and not self.adj_list:
             raise Exception("Adjacency matrix is not defined!")
-        
-        # Check if there is a adjacency list to firstly convert
+
+        # Check if there is an adjacency list to firstly convert
         if not self.adj_matrix and self.adj_list:
             self.__adj_list_to_matrix()
-            
-        return np.array(self.adj_matrix)
+
+        # Initialize an empty 2D list
+        binary_matrix = []
+
+        # Iterate through each row in the adjacency matrix
+        for row in self.adj_matrix:
+            # Initialize an empty list for the current row
+            binary_row = []
+
+            # Iterate through each column in the row
+            for column in row:
+                # Check if the column has an edge instance
+                if column is not None:
+                    binary_row.append(1)
+                else:
+                    binary_row.append(0)
+
+            # Append the processed row to the binary matrix
+            binary_matrix.append(binary_row)
+
+        # Convert the binary matrix to a NumPy array
+        array = np.array(binary_matrix)
+
+        return array
+
     
     def get_vertex_weight(self, vertex):
         """
