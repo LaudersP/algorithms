@@ -234,7 +234,6 @@ class GraphV2(object):
 
         return array
 
-    
     def get_vertex_weight(self, vertex):
         """
         Gets the weight of a vertex
@@ -661,7 +660,6 @@ class GraphV2(object):
             else:
                 return None
 
-
     def girth(self) -> int:
         """
         Gets the length of the shortest cycle in the graph.
@@ -762,3 +760,121 @@ class GraphV2(object):
                 
         # Return the transpose graph
         return GraphV2(transpose_adj_list)
+    
+    def get_binary_adj_matrix(self) -> list:
+        """
+        Get a binary adjacancey matrix based on the current graph
+        :return: A binary adjacecncy matrix
+        """
+        # Check that there is a adjacency matrix
+        if self.adj_matrix is None and self.adj_list:
+            self.__adj_list_to_matrix()
+        
+        # Initialize a matrix
+        binary_matrix = []
+
+        # Iterate through the rows in the matrix
+        for row in self.adj_matrix:
+            # Matrix row list
+            row_data = []
+
+            # Iterate through the columns in the matrix
+            for column in row:
+                # Check if there is an edge
+                if column is not None:
+                    row_data.append(1)
+                else:
+                    row_data.append(0)
+
+            # Insert row into matrix
+            binary_matrix.append(row_data)
+
+        return binary_matrix
+    
+    def get_weight_adj_matrix(self) -> list:
+        """
+        Get a weight adjacency matrix based on the current graph.
+        :return: A weight adjacency matrix
+        """
+        # Check that there is an adjacency matrix
+        if self.adj_matrix is None and self.adj_list:
+            self.__adj_list_to_matrix()
+
+        # Initialize a matrix with zeros
+        weight_matrix = []
+
+        # Iterate through the rows in the matrix
+        for row in self.adj_matrix:
+            # Matrix row list
+            row_data = []
+
+            # Iterate through the columns in the matrix
+            for column in row:
+                # Check if there is an edge
+                if column is not None:
+                    # Use the edge weight if specified, otherwise default to 1
+                    row_data.append(column.weight if column.weight is not None else 1)
+                else:
+                    row_data.append(0)
+
+            # Insert row into matrix
+            weight_matrix.append(row_data)
+
+        return weight_matrix
+    
+    def get_degree_matrix(self):
+        """
+        Get a degree matrix for the current graph.
+        :return: A degree matrix
+        """
+        # Initialize a matrix with zeros
+        degree_matrix = []
+
+        # Fill the matrix with 0's
+        for row in range(self.order):
+            row_data = []
+
+            for column in range(self.order):
+                row_data.append(0)
+
+            degree_matrix.append(row_data)
+
+        # Get the adjacency matrix
+        adjacency_matrix = self.get_binary_adj_matrix()
+
+        # Calculate the degree of each node
+        for i in range(self.order):
+            # Sum the connections for the node (row) in the adjacency matrix
+            degree = sum(adjacency_matrix[i])
+            degree_matrix[i][i] = degree
+
+        return degree_matrix
+
+    def get_laplacian_matrix(self):
+        """
+        Get a Laplacian matrix for the current graph
+        :return: The Laplacian matrix
+        """
+        # Initialize a empty matrix
+        matrix = []
+
+        for row in range(self.order):
+            row_data = []
+
+            for column in range(self.order):
+                row_data.append(0)
+
+            matrix.append(row_data)
+
+        # Get the degree matrix
+        degree_matrix = self.get_degree_matrix()
+
+        # Get the Adjacency matrix
+        adjacency_matrix = self.get_binary_adj_matrix()
+
+        # Get the resulting matrix
+        for row in range(self.order):
+            for column in range(self.order):
+                matrix[row][column] = degree_matrix[row][column] - adjacency_matrix[row][column]
+
+        return matrix
