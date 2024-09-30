@@ -1530,41 +1530,99 @@ class TestGraphMethods(unittest.TestCase):
 
         # Check the length of the cycle starting from vertex C (should also be 4)
         self.assertEqual(4, graph.get_cycle_length(C))
-    
-    def test_adj_matrix_to_2D_numpy_array(self):
+
+class TestGraphMatrixMethods(unittest.TestCase):
+    def setUp(self):
         # Vertices
-        A = Vertex('A')
-        B = Vertex('B')
-        C = Vertex('C')
+        self.A = Vertex('A')
+        self.B = Vertex('B')
+        self.C = Vertex('C')
+        self.D = Vertex('D')
 
         # Edges
-        AB = Edge(A, B)
-        BC = Edge(B, C)
-        AC = Edge(A, C)
+        self.AB = Edge(self.A, self.B)
+        self.BC = Edge(self.B, self.C)
+        self.CD = Edge(self.C, self.D)
+        self.DA = Edge(self.D, self.A)
+        self.AC = Edge(self.A, self.C, weight=5)
 
-        # Create the adjacency list
-        adj_list = {
-            A: [AB, AC],
-            B: [AB, BC],
-            C: [AC, BC]
-        }
-
-        # Expected adjacency matrix
-        adj_matrix = [
-            [None, AB, AC],
-            [AB, None, BC],
-            [AC, BC, None]
+        # Create adjacency matrix
+        self.adj_matrix = [
+            [None, self.AB, self.AC, None],
+            [self.AB, None, self.BC, None],
+            [self.AC, self.BC, None, self.CD],
+            [None, None, self.CD, None]
         ]
 
-        # Test initializing the graph via a valid adjacency list
-        graph = GraphV2(adj_list)
-        self.assertEqual(adj_list, graph.adj_list)
+        # Initialize the graph with the adjacency matrix
+        self.graph = GraphV2(self.adj_matrix)
 
-        # Test converting the adjacency matrix to a 2D NumPy array
-        expected_numpy_array = np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]])
+    def test_get_binary_adj_matrix(self):
+        # Get the binary matrix
+        binary_matrix = self.graph.get_binary_adj_matrix()
 
-        # Convert to NumPy array
-        numpy_array = graph.adj_matrix_to_2D_numpy_array()
+        # Create expected matrix
+        expected_binary_matrix = [
+            [0, 1, 1, 0],
+            [1, 0, 1, 0],
+            [1, 1, 0, 1],
+            [0, 0, 1, 0]
+        ]
 
-        # Test if the resulting NumPy array matches the expected output
+        # Compare
+        self.assertEqual(binary_matrix, expected_binary_matrix)
+
+    def test_get_weight_adj_matrix(self):
+        # Get the weight matrix
+        weight_matrix = self.graph.get_weight_adj_matrix()
+
+        # Create expected matrix
+        expected_weight_matrix = [
+            [0, 1, 5, 0],
+            [1, 0, 1, 0],
+            [5, 1, 0, 1],
+            [0, 0, 1, 0]
+        ]
+
+        # Compare
+        self.assertEqual(weight_matrix, expected_weight_matrix)
+
+    def test_get_degree_matrix(self):
+        # Get the degree matrix
+        degree_matrix = self.graph.get_degree_matrix()
+
+        # Create expected matrix
+        expected_degree_matrix = [
+            [2, 0, 0, 0],
+            [0, 2, 0, 0],
+            [0, 0, 3, 0],
+            [0, 0, 0, 1]
+        ]
+
+        # Compare
+        self.assertEqual(degree_matrix, expected_degree_matrix)
+
+    def test_get_laplacian_matrix(self):
+        # Get the laplacian matrix
+        laplacian_matrix = self.graph.get_laplacian_matrix()
+
+        # Create expected matrix
+        expected_laplacian_matrix = [
+            [2, -1, -1, 0],
+            [-1, 2, -1, 0],
+            [-1, -1, 3, -1],
+            [0, 0, -1, 1]
+        ]
+
+        # Compare
+        self.assertEqual(laplacian_matrix, expected_laplacian_matrix)
+    
+    def test_adj_matrix_to_2D_numpy_array(self):
+        # Get the numpy array
+        numpy_array = self.graph.adj_matrix_to_2D_numpy_array()
+        
+        # Create expected array
+        expected_numpy_array = np.array([[0, 1, 1, 0], [1, 0, 1, 0], [1, 1, 0, 1], [0, 0, 1, 0]])
+
+        # Compare
         self.assertTrue((numpy_array == expected_numpy_array).all())
