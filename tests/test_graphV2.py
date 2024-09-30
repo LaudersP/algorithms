@@ -2,6 +2,7 @@ import unittest
 from lib.vertex import Vertex
 from lib.edge import Edge
 from lib.graph_Pl_v2 import GraphV2
+import numpy as np
 
 class TestGraphInit(unittest.TestCase):
     def test_valid_adj_list_nondirectional(self):
@@ -1529,3 +1530,41 @@ class TestGraphMethods(unittest.TestCase):
 
         # Check the length of the cycle starting from vertex C (should also be 4)
         self.assertEqual(4, graph.get_cycle_length(C))
+    
+    def test_adj_matrix_to_2D_numpy_array(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+
+        # Edges
+        AB = Edge(A, B)
+        BC = Edge(B, C)
+        AC = Edge(A, C)
+
+        # Create the adjacency list
+        adj_list = {
+            A: [AB, AC],
+            B: [AB, BC],
+            C: [AC, BC]
+        }
+
+        # Expected adjacency matrix
+        adj_matrix = [
+            [None, AB, AC],
+            [AB, None, BC],
+            [AC, BC, None]
+        ]
+
+        # Test initializing the graph via a valid adjacency list
+        graph = GraphV2(adj_list)
+        self.assertEqual(adj_list, graph.adj_list)
+
+        # Test converting the adjacency matrix to a 2D NumPy array
+        expected_numpy_array = np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]])
+
+        # Convert to NumPy array
+        numpy_array = graph.adj_matrix_to_2D_numpy_array()
+
+        # Test if the resulting NumPy array matches the expected output
+        self.assertTrue((numpy_array == expected_numpy_array).all())
