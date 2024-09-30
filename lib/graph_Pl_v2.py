@@ -1,7 +1,7 @@
 from lib.vertex import Vertex
 from lib.edge import Edge
 from collections import deque
-from enum import Enum
+import numpy as np
 
 class GraphV2(object):
     """This class handles creation and operations of graph related code"""
@@ -197,6 +197,20 @@ class GraphV2(object):
                             
                         if edge not in self._adj_list[edge.end_vertex]:
                             self._adj_list[edge.end_vertex].append(edge)
+                            
+    def adj_matrix_to_2D_numpy_array(self) -> np.ndarray:
+        """Convert the adjacency matrix to a 2D NumPy array
+        :return: A 2D NumPy array of the graphs adjacency matrix
+        """
+        # Check if there is a adjacency matrix to convert
+        if not self.adj_matrix and not self.adj_list:
+            raise Exception("Adjacency matrix is not defined!")
+        
+        # Check if there is a adjacency list to firstly convert
+        if not self.adj_matrix and self.adj_list:
+            self.__adj_list_to_matrix()
+            
+        return np.array(self.adj_matrix)
     
     def get_vertex_weight(self, vertex):
         """
@@ -303,28 +317,43 @@ class GraphV2(object):
         # Update matrix
         self.__adj_list_to_matrix()
         
-    def add_edge(self, edge):
+    def add_edge(self, edge, allow_multiple_edges=False):
         """
         Adds a new edge to the graph
         :param edge: An instance of the edge class
+        :param allow_multiple_edges: Optional parameter to allow loops or multiple edges between two vertices
         """
         # Check that the edge is valid
         if not isinstance(edge, Edge):
             raise Exception("`edge` must be of type 'Edge'!")
         
-        # Check if the edge is directed
-        if edge.directed and edge not in self.adj_list[edge.start_vertex]:
-            # Insert into the adj_list for the first node
-            self._adj_list[edge.start_vertex].append(edge)
-        elif not edge.directed:
-            # Insert into the adj_list for both nodes
-            if edge not in self.adj_list[edge.start_vertex]:
-                self._adj_list[edge.start_vertex].append(edge) 
-                
-            if edge not in self.adj_list[edge.end_vertex]:
-                self._adj_list[edge.end_vertex].append(edge)
+        # Check for loops if not allowed
+        if not allow_multiple_edges and edge.start_vertex == edge.end_vertex:
+            raise Exception("Loops are not allowed unless 'allow_multiple_edges' is True!")
         
-        # Update the matrix
+        # Check if the edge is directed
+        if edge.directed:
+            # Check for multiple edges if not allowed
+            if not allow_multiple_edges and edge in self._adj_list[edge.start_vertex]:
+                raise Exception("Multiple edges between the same vertices are not allowed unless 'allow_multiple_edges' is True!")
+            
+            # Insert into the adj_list for the start vertex
+            self._adj_list[edge.start_vertex].append(edge)
+        else:
+            # Check for multiple edges if not allowed
+            if not allow_multiple_edges:
+                # Check if the edge already exists in either vertex's adjacency list
+                if edge in self._adj_list[edge.start_vertex] or edge in self._adj_list[edge.end_vertex]:
+                    raise Exception("Multiple edges between the same vertices are not allowed unless 'allow_multiple_edges' is True!")
+            
+            # Check if the edge is a loop
+            if edge.start_vertex != edge.end_vertex:
+                self._adj_list[edge.start_vertex].append(edge)
+                self._adj_list[edge.end_vertex].append(edge)
+            else:
+                self._adj_list[edge.start_vertex].append(edge)
+        
+        # Update the adjacency matrix
         self.__adj_list_to_matrix()
 
     def del_edge(self, edge):
@@ -362,21 +391,27 @@ class GraphV2(object):
             
     def is_connected(self) -> bool:
         """
-        Checks if the graph is connected
-        :return: If the graph is connected
+        Checks if the graph is connected.
+        For undirected graphs, returns True if the graph is connected.
+        For directed graphs, returns True if the graph is strongly connected.
+        :return: True if the graph is connected (undirected) or strongly connected (directed), False otherwise.
         """
-        # Get a list of vertices
-        vertices = list(self.adj_list.keys())
-        
-        # Check that the graph has vertices
-        if not vertices:
-            return True
-        
-        # Get the traversal order
-        traversal_order = self.bfs(vertices[0])
-        
-        # check if all vertices were visited
-        return len(traversal_order) is len(vertices)
+        # Check if the graph is directed
+        if self.is_directed():
+            return self.is_strongly_connected()
+        else:
+            # Get a list of vertices
+            vertices = list(self.adj_list.keys())
+            
+            # Check that the graph has vertices
+            if not vertices:
+                return True
+            
+            # Get the traversal order
+            traversal_order = self.bfs(vertices[0])
+            
+            # Check if all vertices were visited
+            return len(traversal_order) == len(vertices)
     
     def is_unilaterally_connected(self) -> bool:
         """
@@ -442,7 +477,26 @@ class GraphV2(object):
         Checks if the underlying graph is connected if direction is ignored
         :return: If the graph is weakly connected
         """
-        pass
+        # Make a new graph
+        underlying_graph = GraphV2()
+        
+        # Get the vertices
+        vertices = list(self.adj_list.keys())
+        
+        # Add all of the vertices
+        for vertex in vertices:
+            underlying_graph.add_vertex(vertex)
+            
+        # Add all of the edges
+        for vertex in vertices:
+            for edge in self.adj_list[vertex]:
+                underlying_graph.add_edge(Edge(edge.start_vertex, edge.end_vertex, directed=False))
+                
+        # Perform a BFS
+        traversal_order = self.bfs(vertices[0])
+        
+        # Check if all vertices were visited
+        return len(vertices) == len(traversal_order)
     
     def is_tree(self) -> bool:
         """
@@ -464,22 +518,167 @@ class GraphV2(object):
         Gets the number of components in the graph
         :return: The number of components
         """
-        pass
+        # Get the vertices
+        vertices = list(self.adj_list.keys())
+        
+        # Check for vertices
+        if not vertices:
+            return 0
+        
+        # Initialize the visited list and component counter
+        visited = set()
+        components = 0
+        
+        # Traverse each vertex
+        for vertex in vertices:
+            # Check if the vertex has been visited
+            if vertex not in visited:
+                # Perform a BFS
+                visited.update(self.bfs(vertex))
+                        
+                # Increment component count
+                components += 1
+                
+        return components
     
+    def get_cycle_length(self, start_vertex, compare_function=None) -> int:
+        """
+        Find the length of a cycle based on a starting vertex.
+        :param start_vertex: Starting vertex of the cycle.
+        :param compare_function: Function to compare cycle lengths (e.g., min or max).
+        :return: The length of the cycle or None if no cycle exists.
+        """
+        if self.is_directed():
+            # Setup DFS
+            visited = set()
+            rec_stack = {}
+            cycle_lengths = []
+
+            # DFS recursive helper function
+            def dfs(current, depth):
+                # Add the current node for tracking
+                visited.add(current)
+                rec_stack[current] = depth
+
+                # Iterate through the edges for the current vertex
+                for edge in self.adj_list[current]:
+                    # Get the neighboring vertex
+                    neighbor = edge.end_vertex
+
+                    # Check if the neighbor vertex has been visited
+                    if neighbor not in visited:
+                        dfs(neighbor, depth + 1)
+                    # Check if the neighbor vertex is in the recursion stack
+                    elif neighbor in rec_stack:
+                        # Cycle detected
+                        cycle_len = depth - rec_stack[neighbor] + 1
+                        cycle_lengths.append(cycle_len)
+
+                # Remove the current vertex from the recursion stack
+                rec_stack.pop(current)
+
+            # Start the recursive DFS
+            dfs(start_vertex, 0)
+
+            # Determine what to return
+            if cycle_lengths:
+                # Determine if there is a compare function
+                if compare_function:
+                    return compare_function(cycle_lengths)
+                else:
+                    return cycle_lengths[0]
+            else:
+                return None
+        else:
+            # Setup for BFS
+            visited = set()
+            parent = {}
+            depths = {}
+            queue = deque()
+
+            # Add the starting vertex
+            visited.add(start_vertex)
+            parent[start_vertex] = None
+            depths[start_vertex] = 0
+            queue.append(start_vertex)
+
+            cycle_lengths = []
+
+            # Perform the BFS
+            while queue:
+                # Get the next vertex
+                current = queue.popleft()
+
+                # Iterate through the current vertex's edges
+                for edge in self.adj_list[current]:
+                    # Determine the neighbor vertex
+                    if edge.start_vertex == current:
+                        neighbor = edge.end_vertex
+                    else:
+                        neighbor = edge.start_vertex
+
+                    # Check if the neighbor vertex has been visited
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        parent[neighbor] = current
+                        depths[neighbor] = depths[current] + 1
+                        queue.append(neighbor)
+                    elif parent[current] != neighbor:
+                        # Cycle detected
+                        cycle_len = depths[current] + depths[neighbor] + 1
+                        cycle_lengths.append(cycle_len)
+
+            # Determine what to return
+            if cycle_lengths:
+                # Determine if there is a compare function
+                if compare_function:
+                    return compare_function(cycle_lengths)
+                else:
+                    return cycle_lengths[0]
+            else:
+                return None
+
+
     def girth(self) -> int:
         """
-        Gets the length of the shortest cycle in the graph
-        :return: The length of the shortest cycle
+        Gets the length of the shortest cycle in the graph.
+        :return: The length of the shortest cycle or None if no cycle exists.
         """
-        pass
-    
+        shortest_cycle = None
+        
+        # Iterate through the vertices
+        for vertex in self.adj_list:
+            # Get the cycle length
+            cycle_length = self.get_cycle_length(vertex, compare_function=min)
+            
+            # Check that there is a cycle
+            if cycle_length is not None:
+                # Check if the shortest cycle needs updated
+                if shortest_cycle is None or cycle_length < shortest_cycle:
+                    shortest_cycle = cycle_length
+                    
+        return shortest_cycle
+
     def circumference(self) -> int:
         """
-        Gets the length of the longest cycle in the graph
-        :return: The length of the longest cycle
+        Gets the length of the longest cycle in the graph.
+        :return: The length of the longest cycle or None if no cycle exists.
         """
-        pass
-    
+        longest_cycle = None
+        
+        # Iterate through the vertices
+        for vertex in self.adj_list:
+            # Get the cycle length
+            cycle_length = self.get_cycle_length(vertex, compare_function=max)
+            
+            # Check that there is a cycle
+            if cycle_length is not None:
+                # Check if the longest cycle needs updated
+                if longest_cycle is None or cycle_length > longest_cycle:
+                    longest_cycle = cycle_length
+                    
+        return longest_cycle
+
     def bfs(self, start_vertex):
         """
         Perform a breadth-first search on the graph
@@ -535,11 +734,8 @@ class GraphV2(object):
         # Get the edges
         for vertex in self.adj_list:
             for edge in self.adj_list[vertex]:
-                # Reverse the edge direction
-                reversed_edge = Edge(edge.end_vertex, edge.start_vertex, edge.weight, edge.directed)
-                
-                # Add edge to the transpose adjacency list
-                transpose_adj_list[edge.end_vertex].append(reversed_edge)
+                # Add reversed edge to the transpose adjacency list
+                transpose_adj_list[edge.end_vertex].append(Edge(edge.end_vertex, edge.start_vertex, edge.weight, edge.directed))
                 
         # Return the transpose graph
         return GraphV2(transpose_adj_list)
