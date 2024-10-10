@@ -135,7 +135,84 @@ def main():
         }
 
     elif graph_input == 5:
-        pass
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+        F = Vertex('F')
+        G = Vertex('G')
+        H = Vertex('H')
+        I = Vertex('I')
+        J = Vertex('J')
+        K = Vertex('K')
+        L = Vertex('L')
+        M = Vertex('M')
+        N = Vertex('N')
+        O = Vertex('O')
+        P = Vertex('P')
+        Q = Vertex('Q')
+        R = Vertex('R')
+        S = Vertex('S')
+        T = Vertex('T')
+        
+        # Edges
+        AB = Edge(A, B)
+        AF = Edge(A, F)
+        AE = Edge(A, E)
+        BC = Edge(B, C)
+        BG = Edge(B, G)
+        CD = Edge(C, D)
+        CH = Edge(C, H)
+        DE = Edge(D, E)
+        DI = Edge(D, I)
+        EJ = Edge(E, J)
+        FK = Edge(F, K)
+        FO = Edge(F, O)
+        GK = Edge(G, K)
+        GL = Edge(G, L)
+        HL = Edge(H, L)
+        HM = Edge(H, M)
+        IM = Edge(I, M)
+        IN = Edge(I, N)
+        JN = Edge(J, N)
+        JO = Edge(J, O)
+        KP = Edge(K, P)
+        LQ = Edge(L, Q)
+        MR = Edge(M, R)
+        NS = Edge(N, S)
+        OT = Edge(O, T)
+        PQ = Edge(P, Q)
+        PT = Edge(P, T)
+        QR = Edge(Q, R)
+        RS = Edge(R, S)
+        ST = Edge(S, T)
+        
+        # Adjacency list
+        adj_list = {
+            A: [AB, AF, AE],
+            B: [AB, BC, BG],
+            C: [BC, CD, CH],
+            D: [CD, DE, DI],
+            E: [AE, DE, EJ],
+            F: [AF, FK, FO],
+            G: [BG, GK, GL],
+            H: [CH, HL, HM],
+            I: [DI, IM, IN],
+            J: [EJ, JN, JO],
+            K: [FK, GK, KP],
+            L: [GL, HL, LQ],
+            M: [HM, IM, MR],
+            N: [IN, JN, NS],
+            O: [FO, JO, OT],
+            P: [KP, PQ, PT],
+            Q: [LQ, PQ, QR],
+            R: [MR, QR, RS],
+            S: [NS, RS, ST],
+            T: [OT, PT, ST]
+        }
+        
     elif graph_input == 6:
         # Verices
         A = Vertex('A')
@@ -159,11 +236,91 @@ def main():
         }
 
     elif graph_input == 7:
-        pass
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        
+        E = Vertex('E')
+        F = Vertex('F')
+        G = Vertex('G')
+        H = Vertex('H')
+        
+        # Edges
+        AB = Edge(A, B)
+        AD = Edge(A, D)
+        AE = Edge(A, E)
+        BC = Edge(B, C)
+        BD = Edge(B, D)
+        CD = Edge(C, D)
+        CG = Edge(C, G)
+        EF = Edge(E, F)
+        EH = Edge(E, H)
+        FG = Edge(F, G)
+        FH = Edge(F, H)
+        GH = Edge(G, H)
+
+        # Adjacency list
+        adj_list = {
+            A: [AB, AD, AE],
+            B: [AB, BC, BD],
+            C: [BC, CD, CG],
+            D: [AD, BD, CD],
+            E: [AE, EF, EH],
+            F: [EF, FG, FH],
+            G: [CG, FG, GH],
+            H: [EH, FH, GH]
+        }
+        
     elif graph_input == 8:
-        pass
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        E = Vertex('E')
+        
+        # Edges
+        AB = Edge(A, B)
+        BC = Edge(B, C)
+        BD = Edge(B, D)
+        CE = Edge(C, E)
+        
+        # Adjacency list
+        adj_list = {
+            A: [AB],
+            B: [AB, BC, BD],
+            C: [BC, CE],
+            D: [BD],
+            E: [CE]
+        }
+        
     elif graph_input == 9:
-        pass
+        # Vertices
+        F = Vertex('F')
+        G = Vertex('G')
+        H = Vertex('H')
+        I = Vertex('I')
+        J = Vertex('J')
+        
+        # Edges
+        FG = Edge(F, G)
+        FH = Edge(F, H)
+        FI = Edge(F, I)
+        GI = Edge(G, I)
+        IH = Edge(I, H)
+        GJ = Edge(G, J)
+        
+        # Adjacency list
+        adj_list = {
+            F: [FG, FH, FI],
+            G: [FG, GJ, GI],
+            H: [IH, FH],
+            I: [FI, GI, IH],
+            J: [GJ]
+        }
+        
     elif graph_input == 10:
         # Vertices
         A = Vertex('A')
@@ -171,7 +328,6 @@ def main():
         C = Vertex('C')
         D = Vertex('D')
         E = Vertex('E')
-
         F = Vertex('F')
         G = Vertex('G')
         H = Vertex('H')
@@ -183,7 +339,6 @@ def main():
         BC = Edge(B, C)
         BD = Edge(B, D)
         CE = Edge(C, E)
-
         FG = Edge(F, G)
         FH = Edge(F, H)
         FI = Edge(F, I)
@@ -202,7 +357,7 @@ def main():
             G: [FG, GJ, GI],
             H: [IH, FH],
             I: [FI, GI, IH],
-            J: [GJ],
+            J: [GJ]
         }
 
     else:
