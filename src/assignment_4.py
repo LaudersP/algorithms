@@ -3,20 +3,28 @@
 
 import sys
 import os
+import numpy as np
 
 # Add the project root directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import numpy as np
 from lib.vertex import Vertex
 from lib.edge import Edge
 from lib.graph_Pl_v2 import GraphV2
 
 def do_assignment_core(graph):
+    '''
+    Perform the core of the lab
+    :param graph: The graph to perform on
+    '''
     # Matrix printer helper function
-    def print_matrix(matrix, string):
+    def print_matrix(matrix, label):
+        '''
+        Print the matrix
+        :param label: Label of the matrix
+        '''
         # Print label
-        print(f"\n{string}:")
+        print(f"\n{label}:")
 
         # Iterate through each row of the matrix
         for row in matrix:
@@ -58,40 +66,114 @@ def do_assignment_core(graph):
         print("The graph is not connected!")
 
 def main():
-    graph_input = int(input("Which graph would you like to run? "))
-    adj_list = None
-
-    # Act on the appropriate graph number
-    if graph_input == 1:     # Kn graph
+    def initialize_adj_list() -> dict:
+        '''
+        Get the value of `n` and initialize an empty adjacency list
+        :return: The vertices list and initialized adjacency list'''
+        # Get the order of the graph
         n = int(input("Kn: "))
-
+        
+        # Check the input
+        if(not isinstance(n, int)):
+            raise Exception("N must be of type `int`!")
+        elif(n < 1):
+            raise Exception("N must be greater than or equal to 0!")
+        
         # Create a vertices list
         vertices = []
         for i in range(1, n + 1):
             vertices.append(Vertex(i))
-
+            
         # Setup the adjacency list
         adj_list = {}
+        
+        # Add the vertices to the adj_list
         for vertex in vertices:
             adj_list[vertex] = []
+            
+        return vertices, adj_list
+    
+    def create_edge(start_vertex, end_vertex, vertices, adj_list) -> None:
+        '''
+        Create and edge and add it to the appropriate adjacency list places
+        :param start_vertex: The index of the start vertex in the vertices list
+        :param end_vertex: The index of the end vertex in the vertices list
+        :param vertices: The vertices list
+        :param adj_list: The graphs adjacency list
+        '''
+        # Create the edge
+        edge = Edge(vertices[start_vertex], vertices[end_vertex])
+        
+        # Add the edge to the adj_list
+        adj_list[vertices[start_vertex]].append(edge)
+        adj_list[vertices[end_vertex]].append(edge)
+    
+    graph_input = int(input("Which graph would you like to run? "))
+    
+    # Check the input
+    if(not isinstance(graph_input, int)):
+        raise Exception("Graph selection must be of type `int`!")
+    elif(graph_input > 10 or graph_input < 1):
+        raise Exception("Graph selection must be from 1-10!")
+    
+    adj_list = None
 
-        # Iterate through the vertex list
-        for i in range(n):
-            # Iterate through the other vertices excluding the vertex i represents
-            for j in range(i + 1, n):
+    # Act on the appropriate graph number
+    if graph_input == 1:     # Kn graph
+        # Setup the adjacency list
+        vertices, adj_list = initialize_adj_list()
+        
+        # Iterate over each vertex
+        p1 = 0
+        while(p1 < len(vertices)):
+            p2 = p1 + 1
+            
+            # Iterate through the remaining vertices
+            while(p2 < len(vertices)):
                 # Create the edge
-                edge = Edge(vertices[i], vertices[j])
-
-                # Add the edge to the adj_list
-                adj_list[vertices[i]].append(edge)
-                adj_list[vertices[j]].append(edge)
+                create_edge(p1, p2, vertices, adj_list)
+                
+                # Increase p2
+                p2 += 1
+                
+            # Increase p1
+            p1 += 1
 
     elif graph_input == 2:
-        pass
+        # Setup the adjacency matrix
+        vertices, adj_list = initialize_adj_list()
+            
+        # Iterate through the vertex list
+        p1 = 0
+        p2 = 1
+        while(p2 < len(vertices)):
+            # Create the edge
+            create_edge(p1, p2, vertices, adj_list)
+            
+            # Increase the dual pointers
+            p1 += 1
+            p2 += 1
+            
     elif graph_input == 3:
-        pass
+        # Setup the adjacency matrix
+        vertices, adj_list = initialize_adj_list()
+            
+        # Iterate through the vertex list
+        p1 = 0
+        p2 = 1
+        while(p2 < len(vertices)):
+            # Create the edge
+            create_edge(p1, p2, vertices, adj_list)
+            
+            # Increase the dual pointers
+            p1 += 1
+            p2 += 1
+            
+        # Create the looping edge
+        create_edge(0, (len(vertices) - 1), vertices, adj_list)
+        
     elif graph_input == 4:
-        # Vetices
+        # Vertices
         A = Vertex('A')
         B = Vertex('B')
         C = Vertex('C')
@@ -214,7 +296,7 @@ def main():
         }
         
     elif graph_input == 6:
-        # Verices
+        # Vertices
         A = Vertex('A')
         B = Vertex('B')
         C = Vertex('C')
@@ -359,10 +441,6 @@ def main():
             I: [FI, GI, IH],
             J: [GJ]
         }
-
-    else:
-        print("Invalid graph number, must be 1-10!")
-        return
     
     # Create the graph
     graph = GraphV2(adj_list)
@@ -371,4 +449,7 @@ def main():
     do_assignment_core(graph)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as ea:
+        print(f"ERROR: {ea}")
