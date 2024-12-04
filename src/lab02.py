@@ -88,12 +88,25 @@ def main():
     graph = GraphV2(adjacency_list)
     
     # Perform Dijkstra's Algorithm
-    results = graph.dijkstras_algorithm(Arad)
+    results, paths = graph.dijkstras_algorithm(Arad, True)
+
+    distance = results[Bucharest]
+
+    # Extract the path betweem the vertices
+    path = paths[Bucharest]
+    path_string = ""
+    for index in range(len(path)):
+        if index == 0:
+            path_string += path[index].id
+        else:
+            path_string += ", " + path[index].id
     
     # Task 1. Output the result for shortest path from Arad to Bucharest
-    print(f"Shortest distance from Arad -> Bucharest: {results[Bucharest]}")
+    print(f"Shortest distance from Arad -> Bucharest: {distance}")
 
     # Task 2. Output the actual path from Arad to Bucharest
+    print("(start)", path_string, "(end)")
+
 
 if __name__ == "__main__":
     main()
