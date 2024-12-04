@@ -880,12 +880,14 @@ class GraphV2(object):
 
         return matrix
     
-    def dijkstras_algorithm(self, start_vertex):
+    def dijkstras_algorithm(self, start_vertex, output_paths=False):
         """
         Finds the shortest path from the start_vertex to 
         all other vertices using the Dijkstra's Algorithm
         :param start_vertex: The vertex at which the algorithm should start
+        :param output_paths: Defaulted to False, if True the function will return the shorestest path to each vertex from the `start_vertex`
         :return: A dictionary of the distances to each vertex
+        :return: A list of the paths to each vertex from the `start_vertex`
         """
         # Check for valid arguments
         if not isinstance(start_vertex, Vertex):
@@ -897,9 +899,13 @@ class GraphV2(object):
         
         # Initialize a list to store the visited vertices
         visited = []
+
+        # Initialize a dictionary to store the paths
+        if output_paths:
+            paths = {}
         
         # Create the queue by adding the starting node
-        queue = deque([(start_vertex, 0)])
+        queue = deque([(start_vertex, 0, [start_vertex])])
         
         # Iterate while there are vertices in the queue
         while queue:
@@ -907,7 +913,7 @@ class GraphV2(object):
             queue = deque(sorted(queue, key=lambda x: x[1])) 
 
             # Get the smallest distant vertex
-            current_vertex, current_distance = queue.popleft()
+            current_vertex, current_distance, traversal_list = queue.popleft()
             
             if current_vertex in visited:
                 continue
@@ -928,8 +934,16 @@ class GraphV2(object):
                 # Check if the new distance is less than the distance of the last calculation; greedy algorithm
                 if new_distance < distances[connecting_vertex]:
                     distances[connecting_vertex] = new_distance
+
+                    updated_traversal_list = traversal_list + [connecting_vertex]
+
+                    if output_paths:
+                        paths[connecting_vertex] = updated_traversal_list
                     
                     # Add the other node to the queue
-                    queue.append((connecting_vertex, new_distance))
-                    
+                    queue.append((connecting_vertex, new_distance, updated_traversal_list))  
+
+        if output_paths:
+            return distances, paths
+        
         return distances
