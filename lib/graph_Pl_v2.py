@@ -2,6 +2,7 @@ from lib.vertex import Vertex
 from lib.edge import Edge
 from collections import deque
 import numpy as np
+import math
 
 class GraphV2(object):
     """This class handles creation and operations of graph related code"""
@@ -878,3 +879,57 @@ class GraphV2(object):
                 matrix[row][column] = degree_matrix[row][column] - adjacency_matrix[row][column]
 
         return matrix
+    
+    def dijkstras_algorithm(self, start_vertex):
+        """
+        Finds the shortest path from the start_vertex to 
+        all other vertices using the Dijkstra's Algorithm
+        :param start_vertex: The vertex at which the algorithm should start
+        :return: A dictionary of the distances to each vertex
+        """
+        # Check for valid arguments
+        if not isinstance(start_vertex, Vertex):
+            raise Exception("`start_vertex` must be of type `Vertex`!")
+        
+        # Initialize the distances to all the vertices by setting them to infinity
+        distances = {key: float('inf') for key in self.adj_list}
+        distances[start_vertex] = 0
+        
+        # Initialize a list to store the visited vertices
+        visited = []
+        
+        # Create the queue by adding the starting node
+        queue = deque([(start_vertex, 0)])
+        
+        # Iterate while there are vertices in the queue
+        while queue:
+            # Sort the queue using the distance
+            queue = deque(sorted(queue, key=lambda x: x[1])) 
+
+            # Get the smallest distant vertex
+            current_vertex, current_distance = queue.popleft()
+            
+            if current_vertex in visited:
+                continue
+            
+            # Add the `current_vertex` to the visited list
+            visited.append(current_vertex)
+            
+            # Iterate through the `current_vertex` edge list
+            for edge in self.adj_list[current_vertex]:
+                # Get the connecting vertex
+                if edge.start_vertex == current_vertex:
+                    connecting_vertex = edge.end_vertex
+                else:
+                    connecting_vertex = edge.start_vertex
+                    
+                new_distance = current_distance + edge.weight
+                
+                # Check if the new distance is less than the distance of the last calculation; greedy algorithm
+                if new_distance < distances[connecting_vertex]:
+                    distances[connecting_vertex] = new_distance
+                    
+                    # Add the other node to the queue
+                    queue.append((connecting_vertex, new_distance))
+                    
+        return distances
