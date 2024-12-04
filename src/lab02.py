@@ -11,7 +11,8 @@ from lib.graph_Pl_v2 import GraphV2
 from lib.vertex import Vertex
 from lib.edge import Edge
 
-def initialize_graph():
+def main():
+    # Create the map
     # Cities
     Oradea = Vertex("Oradea")
     Zerind = Vertex("Zerind")
@@ -48,6 +49,7 @@ def initialize_graph():
     Drobeta_Craiova = Edge(Drobeta, Craiova, 120)
     Fagaras_Bucharest = Edge(Fagaras, Bucharest, 211)
     Rimnicu_Vilcea_Pitesti = Edge(Rimnicu_Vilcea, Pitesti, 97)
+    Rimnicu_Vilcea_Craiova = Edge(Rimnicu_Vilcea, Craiova, 146)
     Craiova_Pitesti = Edge(Craiova, Pitesti, 138)
     Pitesti_Bucharest = Edge(Pitesti, Bucharest, 101)
     Bucharest_Urziceni = Edge(Bucharest, Urziceni, 85)
@@ -62,7 +64,7 @@ def initialize_graph():
     adjacency_list = {
         Arad: [Arad_Sibiu, Arad_Timisoara, Zerind_Arad],
         Bucharest: [Bucharest_Giurgiu, Bucharest_Urziceni, Fagaras_Bucharest, Pitesti_Bucharest],
-        Craiova: [Craiova_Pitesti, Drobeta_Craiova, Rimnicu_Vilcea_Pitesti],
+        Craiova: [Craiova_Pitesti, Drobeta_Craiova, Rimnicu_Vilcea_Craiova],
         Drobeta: [Drobeta_Craiova, Mehadia_Drobeta],
         Eforie: [Hirsova_Eforie],
         Fagaras: [Fagaras_Bucharest, Sibiu_Fagaras],
@@ -74,20 +76,24 @@ def initialize_graph():
         Neamt: [Iasi_Neamt],
         Oradea: [Oradea_Sibiu, Oradea_Zerind],
         Pitesti: [Craiova_Pitesti, Pitesti_Bucharest, Rimnicu_Vilcea_Pitesti],
-        Rimnicu_Vilcea: [Craiova_Pitesti, Rimnicu_Vilcea_Pitesti, Sibiu_Rimnicu_Vilcea],
+        Rimnicu_Vilcea: [Rimnicu_Vilcea_Craiova, Rimnicu_Vilcea_Pitesti, Sibiu_Rimnicu_Vilcea],
         Sibiu: [Arad_Sibiu, Oradea_Sibiu, Sibiu_Fagaras, Sibiu_Rimnicu_Vilcea],
         Timisoara: [Arad_Timisoara, Timisoara_Lugoj],
         Urziceni: [Bucharest_Urziceni, Urziceni_Hirsova, Urziceni_Vaslui],
         Vaslui: [Urziceni_Vaslui, Vaslui_Iasi],
-        Zerind: [Oradea_Zerind, Zerind_Arad],
+        Zerind: [Oradea_Zerind, Zerind_Arad]
     }
 
     # Initialize the graph
-    return GraphV2(adjacency_list)
+    graph = GraphV2(adjacency_list)
+    
+    # Perform Dijkstra's Algorithm
+    results = graph.dijkstras_algorithm(Arad)
+    
+    # Task 1. Output the result for shortest path from Arad to Bucharest
+    print(f"Shortest distance from Arad -> Bucharest: {results[Bucharest]}")
 
-def main():
-    # Create the map
-    graph = initialize_graph()
+    # Task 2. Output the actual path from Arad to Bucharest
 
 if __name__ == "__main__":
     main()
