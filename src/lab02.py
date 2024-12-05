@@ -87,6 +87,8 @@ def main():
     # Initialize the graph
     graph = GraphV2(adjacency_list)
     
+    print(" ----- Dijkstra's ----- ")
+
     # Perform Dijkstra's Algorithm
     results, paths = graph.dijkstras_algorithm(Arad, True)
 
@@ -102,9 +104,60 @@ def main():
             path_string += ", " + path[index].id
     
     # Task 1. Output the result for shortest path from Arad to Bucharest
-    print(f"Shortest distance from Arad -> Bucharest: {distance}")
+    print(f"Shortest distance from {path[0].id} -> {path[-1].id}: {distance}")
 
     # Task 2. Output the actual path from Arad to Bucharest
+    print("(start)", path_string, "(end)")
+    
+    
+    print("\n\n ----- A* ----- ")
+
+    # Task 3. Use a nontrivial function that is always admissible
+    def heuristic(current_vertex, end_vertex):
+        # Ensure that the arguments are valid (for this assignment only)
+        if end_vertex is not Bucharest:
+            raise Exception(f"'end_vertex' must be {Bucharest.id}")
+        
+        # Given straight line distances for this assignment
+        heuristic_straight_line_distances = {
+            Arad: 366,
+            Bucharest: 0,
+            Craiova: 160,
+            Drobeta: 242,
+            Eforie: 161,
+            Fagaras: 176,
+            Giurgiu: 77,
+            Hirsova: 151,
+            Iasi: 226,
+            Lugoj: 224, 
+            Mehadia: 241,
+            Neamt: 234,
+            Oradea: 380,
+            Pitesti: 100,
+            Rimnicu_Vilcea: 193,
+            Sibiu: 253,
+            Timisoara: 329,
+            Urziceni: 80,
+            Vaslui: 199,
+            Zerind: 374
+        }
+        
+        return heuristic_straight_line_distances[end_vertex]
+
+    distance, path = graph.a_star(Arad, Bucharest, heuristic, True)
+
+    # Extract the path betweem the vertices
+    path_string = ""
+    for index in range(len(path)):
+        if index == 0:
+            path_string += path[index].id
+        else:
+            path_string += ", " + path[index].id
+
+    # Task 4. Output the result for shortest path from Arad to Bucharest
+    print(f"Shortest distance from {path[0].id} -> {path[-1].id}: {distance}")
+
+    # Task 5. Output the actual path from Arad to Bucharest
     print("(start)", path_string, "(end)")
 
 
