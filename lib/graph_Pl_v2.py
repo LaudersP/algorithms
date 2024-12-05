@@ -940,10 +940,70 @@ class GraphV2(object):
                     if output_paths:
                         paths[connecting_vertex] = updated_traversal_list
                     
-                    # Add the other node to the queue
+                    # Add the connecting vertex to the queue
                     queue.append((connecting_vertex, new_distance, updated_traversal_list))  
 
         if output_paths:
             return distances, paths
         
         return distances
+    
+    def a_star(self, start_vertex, end_vertex, heuristic_function, output_paths=False):
+        # Check for valid arguments
+        if not isinstance(start_vertex, Vertex):
+            raise Exception("`start_vertex` must be of type `Vertex`!")
+        if not isinstance(end_vertex, Vertex):
+            raise Exception("`end_vertex` must be of type `Vertex`!")
+        if not callable(heuristic_function):
+            raise Exception("`heuristic_function` must be callable!")
+        
+        # Initialize the distances to all the vertices by setting them to infinity
+        known_distances = {key: float('inf') for key in self.adj_list}
+        known_distances[start_vertex] = 0
+        estimated_distances = {key: float('inf') for key in self.adj_list}
+        estimated_distances[start_vertex] = heuristic_function(start_vertex, end_vertex)
+
+        # Initialize a dictionary to store the paths
+        if output_paths:
+            paths = {}
+
+        # Create the queue by adding the starting node
+        queue = deque([(start_vertex, 0, [start_vertex])])
+
+        # Iterate while there are vertices in the queue
+        while queue:
+            # Sort the queue using the distance
+            queue = deque(sorted(queue, key=lambda x: x[1] + heuristic_function(x, end_vertex)))
+
+            # Get the smallest `estimated_distant` vertex
+            current_vertex, current_distance, traversal_list = queue.popleft()
+
+            if current_vertex == end_vertex:
+                if output_paths:
+                    return current_distance, traversal_list
+                else:
+                    return current_distance
+            
+            # Iterate through the `current_vertex` edge list
+            for edge in self.adj_list[current_vertex]:
+                # Get the connecting vertex
+                if edge.start_vertex == current_vertex:
+                    connecting_vertex = edge.end_vertex
+                else:
+                    connecting_vertex = edge.start_vertex
+
+                new_known_distance = current_distance + edge.weight
+
+                # Check if the new known distance is less than the distance of the last known distance; greedy algorithm
+                if new_known_distance < known_distances[connecting_vertex]:
+                    known_distances[connecting_vertex] = new_known_distance
+                    
+                    # f(n) = g(n) + h(n)
+                    estimated_distances[connecting_vertex] = new_known_distance + heuristic_function(connecting_vertex, end_vertex)
+
+                    updated_traversal_list = traversal_list + [connecting_vertex]
+
+                    # Add the connecting vertex to the queue
+                    queue.append((connecting_vertex, new_known_distance, updated_traversal_list)) 
+
+        return float('inf'), []
