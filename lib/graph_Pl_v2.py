@@ -886,8 +886,7 @@ class GraphV2(object):
         all other vertices using the Dijkstra's Algorithm
         :param start_vertex: The vertex at which the algorithm should start
         :param output_paths: Defaulted to False, if True the function will return the shorestest path to each vertex from the `start_vertex`
-        :return: A dictionary of the distances to each vertex
-        :return: A list of the paths to each vertex from the `start_vertex`
+        :return: A dictionary of the distances to each vertex, A list of the paths to each vertex from the `start_vertex`
         """
         # Check for valid arguments
         if not isinstance(start_vertex, Vertex):
@@ -949,6 +948,15 @@ class GraphV2(object):
         return distances
     
     def a_star(self, start_vertex, end_vertex, heuristic_function, output_paths=False):
+        """
+        Finds the shortest path from the start_vertex to
+        the end_vertex using the A* Algorithm
+        :param start_vertex: The vertex at which the algorithm should start
+        :param end_vertex: The vertex at which the algorithm is searching for
+        :param heuristic_function: The function used to get the estimated weight
+        :param output_paths: Defaulted to False, if True the function will return the shorestest path to each vertex from the `start_vertex`
+        :return: The distance of the path, A list containing the visited vertices on the path
+        """
         # Check for valid arguments
         if not isinstance(start_vertex, Vertex):
             raise Exception("`start_vertex` must be of type `Vertex`!")
@@ -1007,3 +1015,57 @@ class GraphV2(object):
                     queue.append((connecting_vertex, new_known_distance, updated_traversal_list)) 
 
         return float('inf'), []
+
+    def floyd_warshall_algorithm(self, start_vertex):
+        """
+        Finds the shortest path from the start_vertex to 
+        all other vertices using the Floyd-Warshall Algorithm
+        :param start_vertex: The vertex at which the algorithm should start
+        :return: A matrix of the distances to each vertex
+        """
+        # Check for valid arguments
+        if not isinstance(start_vertex, Vertex):
+            raise Exception("`start_vertex` must be of type `Vertex`!")
+        
+        # Initialize the matrix
+        matrix = []
+        for row in range(self.order):
+            column_data = []
+            for column in range(self.order):
+                if row == column:
+                    column_data.append(0)   # Vertex distance to itself is 0
+                else:
+                    column_data.append(float('inf'))    # Initialize to infinity
+                
+            matrix.append(column_data)
+            
+        # Get a list of vertices
+        vertices = list(self._adj_list.keys())
+        
+        # Create D(0)
+        for row, vertex in enumerate(vertices):
+            # Iterate through the edges
+            for edge in self.adj_list[vertex]:
+                # Find the column based on ending vertex
+                for column, value in enumerate(vertices):
+                    # Check if start is vertex and end is value
+                    if edge.start_vertex == vertex and edge.end_vertex == value:
+                        matrix[row][column] = edge.weight
+                        
+                    # Check if end is vertex and start is value
+                    elif edge.end_vertex == vertex and edge.start_vertex == value:
+                        matrix[row][column] = edge.weight
+                                
+        # Iterate once for each vertex           
+        for k in range(self.order):
+            # Store the old matrix
+            last_matrix = matrix
+            
+            # Iterate through the rows in the matrix
+            for i in range(self.order):
+                # Iterate through the columns in the matrix
+                for j in range(self.order):
+                    # Set the value of d(k)ij to min(d(k-1)ij, d(k-1)ik + d(k-1kj))
+                    matrix[i][j] = min(last_matrix[i][j], (last_matrix[i][k] + last_matrix[k][j]))
+        
+        return matrix
