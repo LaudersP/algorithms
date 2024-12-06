@@ -159,7 +159,34 @@ def main():
 
     # Task 5. Output the actual path from Arad to Bucharest
     print("(start)", path_string, "(end)")
-
+    
+    print("\n\n ----- Floyd-Warshall ----- ")
+    
+    # Task 7. Output the solution for Problem 0
+    result_matrix = graph.floyd_warshall_algorithm(Arad)
+    
+    # Print resulting matrix
+    print(f"D({graph.order}):\n[")
+    for row in result_matrix:
+        print(f"{row},")
+    print("]")
+        
+    # Output the distance
+    print(f"\nShortest distance from {Arad.id} -> {Bucharest.id}: {result_matrix[0][1]}")
+    
+    # Task 9. If your goal is to solve problems like Problem 0, which of these three algorithms is most appropriate? Which is least appropriate? Explain.
+    
+    # If the goal is to solve a problem of going from one vertex to another than the best algorithm to use would be A*.
+    # This would be due to the principle of the algorithm being designed to strategically search for the end vertex.
+    # This not only saves computational time since there are less steps to perform in the algorithm but it also saves
+    # user time as the algorithm outputs the direct information. This prevents the user from having to post process the 
+    # results in order to get the needed result at the end vertex.
+    
+    # The worst algorithm would have to be Floyd-Warshall, this being due to the large amount of steps that are needed.
+    # This algorithm contains a lot of computational steps along with storing two matrix both n^2 sized.
+    # This all around impacts the computer hardware performance. The algorithm also completes the distance
+    # for all of the vertices from the starting vertex meaning that more is done than needed. Now one could argue
+    # the same for Dijkstra's but with that algorithm the number of computational steps is far less than Floyd-Warshall
 
 if __name__ == "__main__":
     main()
