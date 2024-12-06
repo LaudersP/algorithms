@@ -3,6 +3,7 @@ from lib.vertex import Vertex
 from lib.edge import Edge
 from lib.graph_Pl_v2 import GraphV2
 import numpy as np
+import math
 
 class TestGraphInit(unittest.TestCase):
     def test_valid_adj_list_nondirectional(self):
@@ -1626,3 +1627,348 @@ class TestGraphMatrixMethods(unittest.TestCase):
 
         # Compare
         self.assertTrue((numpy_array == expected_numpy_array).all())
+        
+class TestDijkstraAlgorithm(unittest.TestCase):
+    def test_dijkstra_not_directed(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B, weight=1)
+        AC = Edge(A, C, weight=4)
+        BC = Edge(B, C, weight=2)
+        
+        # Create the adjacency list
+        adj_list = {
+            A: [AB, AC],
+            B: [AB, BC],
+            C: [AC, BC]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Run Dijkstra
+        distances = graph.dijkstras_algorithm(A)
+        
+        # Expected distances
+        expected = {
+            A: 0,
+            B: 1,
+            C: 3
+        }
+        self.assertEqual(distances, expected)
+        
+    def test_dijkstra_directed(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        
+        # Edges
+        AD = Edge(A, D, weight=2, directed=True)
+        BA = Edge(B, A, weight=1, directed=True)
+        BC = Edge(B, C, weight=3, directed=True)
+        CA = Edge(C, A, weight=4, directed=True)
+        DC = Edge(D, C, weight=5, directed=True)
+        
+        # Create the adjacency list
+        adj_matrix = [
+            [None, None, None, AD],
+            [BA, None, BC, None],
+            [CA, None, None, None],
+            [None, None, DC, None]
+        ]
+        
+        # Initialize the graph
+        graph = GraphV2(adj_matrix)
+        
+        # Run Dijkstra
+        distances = graph.dijkstras_algorithm(A)
+        
+        # Expected distances
+        expected = {
+            A: 0,
+            B: float('inf'),
+            C: 7,
+            D: 2
+        }
+        self.assertEqual(distances, expected)
+        
+    def test_dijkstra_invalid_start_vertex(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        
+        # Edges
+        AB = Edge(A, B, weight=1)
+        
+        # Create the adjacency list
+        adj_list = {
+            A: [AB],
+            B: [AB]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check invalid start_vertex (not a Vertex object)
+        with self.assertRaises(Exception) as context:
+            graph.dijkstras_algorithm("Invalid Start")
+        self.assertEqual(
+            str(context.exception),
+            "`start_vertex` must be of type `Vertex`!"
+        )
+
+class TestAStarAlgorithm(unittest.TestCase):
+    def test_a_star_not_directed(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        
+        # Edges
+        AB = Edge(A, B, weight=1)
+        BC = Edge(B, C, weight=2)
+        AD = Edge(A, D, weight=4)
+        CD = Edge(C, D, weight=3)
+        
+        # Create the adjacency list
+        adj_list = {
+            A: [AB, AD],
+            B: [AB, BC],
+            C: [BC, CD],
+            D: [AD, CD]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Heuristics
+        def heuristic(start_vertex, end_vertex):
+            heuristics = {
+                A: 0,
+                B: 1,
+                C: 2,
+                D: 3
+            }
+            
+            return heuristics[end_vertex]
+        
+        # Run A* Algorithm
+        cost, path = graph.a_star(A, D, heuristic, output_paths=True)
+        
+        # Expected cost and path
+        self.assertEqual(cost, 4)
+        self.assertEqual(path, [A, D])
+     
+    def test_a_star_directed(self):   
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        D = Vertex('D')
+        
+        # Edges
+        AD = Edge(A, D, weight=2, directed=True)
+        BA = Edge(B, A, weight=1, directed=True)
+        BC = Edge(B, C, weight=3, directed=True)
+        CA = Edge(C, A, weight=4, directed=True)
+        DC = Edge(D, C, weight=5, directed=True)
+        
+        # Create the adjacency list
+        adj_matrix = [
+            [None, None, None, AD],
+            [BA, None, BC, None],
+            [CA, None, None, None],
+            [None, None, DC, None]
+        ]
+        
+        # Initialize the graph
+        graph = GraphV2(adj_matrix)
+        
+        # Heuristics
+        def heuristic(start_vertex, end_vertex):
+            heuristics = {
+                A: 0,
+                B: float('inf'),
+                C: 2,
+                D: 1
+            }
+            
+            return heuristics[end_vertex]
+        
+        # Run Dijkstra
+        cost, path = graph.a_star(A, C, heuristic, output_paths=True)
+        
+        # Expected cost and path
+        self.assertEqual(cost, 7)
+        self.assertEqual(path, [A, D, C])
+        
+    def test_a_star_invalid_start_vertex(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B, weight=1)
+        BC = Edge(B, C, weight=2)
+        
+        # Heuristics
+        heuristics = {
+            A: 3,
+            B: 2,
+            C: 1
+        }
+        
+        # Create the adjacency list
+        adj_list = {
+            A: [AB],
+            B: [AB, BC],
+            C: [BC]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check invalid start_vertex (not a Vertex object)
+        with self.assertRaises(Exception) as context:
+            graph.a_star("Invalid Start", C, heuristics)
+        self.assertEqual(
+            str(context.exception),
+            "`start_vertex` must be of type `Vertex`!"
+        )
+        
+    def test_a_star_invalid_end_vertex(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B, weight=1)
+        BC = Edge(B, C, weight=2)
+        
+        # Heuristics
+        heuristics = {
+            A: 3,
+            B: 2,
+            C: 1
+        }
+        
+        # Create the adjacency list
+        adj_list = {
+            A: [AB],
+            B: [AB, BC],
+            C: [BC]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check invalid start_vertex (not a Vertex object)
+        with self.assertRaises(Exception) as context:
+            graph.a_star(A, "Invalid Start", heuristics)
+        self.assertEqual(
+            str(context.exception),
+            "`end_vertex` must be of type `Vertex`!"
+        )
+    
+    def test_a_star_invalid_heuristics(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B, weight=1)
+        BC = Edge(B, C, weight=2)
+        
+        # Heuristics
+        heuristics = "Invalid Heuristics"  # Not a dictionary
+        
+        # Create the adjacency list
+        adj_list = {
+            A: [AB],
+            B: [AB, BC],
+            C: [BC]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check invalid heuristics (not a dictionary)
+        with self.assertRaises(Exception) as context:
+            graph.a_star(A, C, heuristics)
+        self.assertEqual(
+            str(context.exception),
+            "`heuristic_function` must be callable!"
+        )
+
+class TestFloydWarshallAlgorithm(unittest.TestCase):
+    def test_floyd_warshall_not_directed(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B, weight=1)
+        BC = Edge(B, C, weight=2)
+        AC = Edge(A, C, weight=4)
+        
+        # Create the adjacency list
+        adj_list = {
+            A: [AB, AC],
+            B: [AB, BC],
+            C: [AC, BC]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Run Floyd-Warshall
+        dist_matrix = graph.floyd_warshall_algorithm(A)
+        
+        # Expected distance matrix
+        expected_dist_matrix = [
+            [0, 1, 3],
+            [1, 0, 2],
+            [3, 2, 0]
+        ]
+        
+        # Compare the matrices
+        self.assertEqual(dist_matrix, expected_dist_matrix)
+
+    def test_floyd_warshall_invalid_start_vertex(self):
+        # Vertices
+        A = Vertex('A')
+        B = Vertex('B')
+        C = Vertex('C')
+        
+        # Edges
+        AB = Edge(A, B, weight=1)
+        BC = Edge(B, C, weight=2)
+        
+        # Create the adjacency list
+        adj_list = {
+            A: [AB],
+            B: [AB, BC],
+            C: [BC]
+        }
+        
+        # Initialize the graph
+        graph = GraphV2(adj_list)
+        
+        # Check invalid start_vertex (not a Vertex object)
+        with self.assertRaises(Exception) as context:
+            graph.floyd_warshall_algorithm("Invalid Start")
+        self.assertEqual(
+            str(context.exception),
+            "`start_vertex` must be of type `Vertex`!"
+        )
